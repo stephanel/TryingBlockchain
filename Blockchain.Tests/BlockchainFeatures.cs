@@ -1,5 +1,6 @@
 using Blockchain.Core;
 using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Blockchain.Tests
@@ -16,12 +17,15 @@ namespace Blockchain.Tests
 
             // When
             blockchain.AddBlock(new Block(DateTime.Now, latestBlock.Hash,
-                "{sender:Bob,receiver:Bub,amount:10}"));
+                new List<Transaction> { new Transaction("Bob", "Bill", 10) }));
 
             // Then
             Assert.Equal(2, blockchain.Chain.Count);
-            Assert.Equal(Core.Blockchain.GenesisBlockData, blockchain.Chain[0].Data);
-            Assert.Equal("{sender:Bob,receiver:Bub,amount:10}", blockchain.Chain[1].Data);
+            Assert.Empty(blockchain.Chain[0].Transactions);
+            Assert.Single(blockchain.Chain[1].Transactions);
+            Assert.Equal("Bob", blockchain.Chain[1].Transactions[0].FromAddress);
+            Assert.Equal("Bill", blockchain.Chain[1].Transactions[0].ToAddress);
+            Assert.Equal(10, blockchain.Chain[1].Transactions[0].Amount);
             Assert.True(blockchain.IsValid());
         }
 
@@ -34,10 +38,10 @@ namespace Blockchain.Tests
             Block latestBlock = blockchain.GetLatestBlock();
 
             blockchain.AddBlock(new Block(DateTime.Now, latestBlock.Hash,
-                "{sender:Bob,receiver:Bub,amount:10}"));
+                new List<Transaction> { new Transaction("Bob", "Bill", 10) }));
 
             // When
-            blockchain.Chain[1].Data = "{sender:Bob,receiver:Bub,amount:100}";
+            blockchain.Chain[1].Transactions[0].Amount = 100;
 
             // Then
             Assert.False(blockchain.IsValid());
