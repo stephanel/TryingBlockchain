@@ -26,9 +26,10 @@ namespace Blockchain.Out
             Console.WriteLine($"Duration: {endTime - startTime}");
 
             Console.WriteLine("=========================");
-            Console.WriteLine($"Henry' balance: {blockchain.GetBalance("Henry")}");
-            Console.WriteLine($"MaHesh' balance: {blockchain.GetBalance("MaHesh")}");
-            Console.WriteLine($"Bill' balance: {blockchain.GetBalance("Bill")}");
+            foreach(var wallet in blockchain.GetWallets())
+            {
+                Console.WriteLine($"{wallet}' balance: {blockchain.GetBalance(wallet)}");
+            }
 
             Console.WriteLine("=========================");
             Console.WriteLine(JsonConvert.SerializeObject(blockchain, Formatting.Indented));

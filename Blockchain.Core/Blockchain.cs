@@ -15,11 +15,9 @@ namespace Blockchain.Core
 
     public class Blockchain
     {
-        public readonly Transaction GenesisBlockTransaction = new Transaction(null, null, 0);
-
         public int Difficulty { get; set; } = 2;
         public IList<Block> Chain { get; set; }
-        IList<Transaction> PendingTransactions = new List<Transaction>();
+        public IList<Transaction> PendingTransactions = new List<Transaction>();
         public int Reward { get; set; } = 1;
 
         public Blockchain()
@@ -40,7 +38,10 @@ namespace Blockchain.Core
 
         private Block CreateGenesisBlock()
         {
-            return new Block(DateTime.Now, null, new List<Transaction> { });
+            Block block = new Block(DateTime.Now, null, PendingTransactions);
+            block.Mine(Difficulty);
+            PendingTransactions = new List<Transaction>();
+            return block;
         }
 
         public Block GetLatestBlock()
@@ -67,6 +68,11 @@ namespace Blockchain.Core
                 Block previousBlock = Chain[i - 1];
 
                 if(currentBlock.Hash != currentBlock.CalculateHash())
+                {
+                    return false;
+                }
+
+                if(currentBlock.PreviousHash != previousBlock.Hash)
                 {
                     return false;
                 }
@@ -103,6 +109,20 @@ namespace Blockchain.Core
                 .Sum(transaction => transaction.Amount);
 
             return credit - debit;
+        }
+
+        public List<string> GetWallets()
+        {
+            var allTransactions = this.Chain
+                .SelectMany(block => block.Transactions);
+
+            return allTransactions
+                .Select(transaction => transaction.FromAddress)
+                .Concat(allTransactions.Select(transaction => transaction.ToAddress))
+                .Where(wallet => !string.IsNullOrWhiteSpace(wallet))
+                .Distinct()
+                .OrderBy(wallet => wallet)
+                .ToList();
         }
 
     }
